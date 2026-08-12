@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Team" ALTER COLUMN "status" SET DEFAULT 'UNPUBLISHED';

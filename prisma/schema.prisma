@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String         @id @default(uuid())
+  name                     String
+  email                    String         @unique
+  password                 String
+  createdAT                DateTime       @default(now())
+  resetPasswordToken       String?
+  resetPasswordTokenExpiry DateTime?
+  events                   Event[]
+  notifications            Notification[]
+  teams                    Team[]
+}
+
+model Team {
+  id           String     @id @default(uuid())
+  name         String
+  role         String
+  image        String
+  createdBy    String
+  displayOrder Int        @default(0)
+  status       TeamStatus @default(UNPUBLISHED)
+  creator      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  category    String
+  title       String
+  image       String
+  location    String
+  date        DateTime
+  time        String
+  description String
+  speaker     String
+  venue       String
+  attendees   Int
+  agenda      String[]
+  createdAt   DateTime    @default(now())
+  createdBy   String
+  status      EventStatus @default(UNPUBLISHED)
+  creator     User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  fullName  String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+enum EventStatus {
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum TeamStatus {
+  PUBLISHED
+  UNPUBLISHED
+}

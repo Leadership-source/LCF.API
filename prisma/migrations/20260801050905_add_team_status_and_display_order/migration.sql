@@ -1,0 +1,6 @@
+-- CreateEnum
+CREATE TYPE "TeamStatus" AS ENUM ('PUBLISHED', 'UNPUBLISHED');
+
+-- AlterTable
+ALTER TABLE "Team" ADD COLUMN     "displayOrder" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "status" "TeamStatus" NOT NULL DEFAULT 'PUBLISHED';
