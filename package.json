@@ -2,12 +2,13 @@
   "name": "leadership-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed": "node  prisma/seed.js"
+    "build": "prisma generate",
+    "seed": "node prisma/seed.js"
   },
   "keywords": [],
   "author": "",
