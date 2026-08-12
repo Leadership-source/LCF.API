@@ -7,6 +7,7 @@ import teamRoute from "./routes/teamRoutes.js";
 import eventRoute from "./routes/eventRoute.js";
 import contactRoutes from "./routes/contactRoute.js";
 import notificationRoute from "./routes/notificationRoutes.js";
+import adminRoute from "./routes/adminRoute.js";
 import cookieParser from "cookie-parser";
 
 import { connectDB, disconnectDB } from "./config/db.js";
@@ -30,6 +31,7 @@ app.use("/teams", teamRoute);
 app.use("/events", eventRoute);
 app.use("/notifications", notificationRoute);
 app.use("/contact", contactRoutes);
+app.use("/admin", adminRoute);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
