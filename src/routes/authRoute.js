@@ -1,6 +1,5 @@
 import express from "express";
 import {
-  register,
   login,
   logout,
   getCurrentUser,
@@ -14,12 +13,9 @@ import { validate } from "../middleWare/validateRequest.js";
 import {
   changePasswordSchema,
   loginSchema,
-  registerSchema,
 } from "../validators/authValidators.js";
 
 const router = express.Router();
-
-router.post("/register", validate(registerSchema), register);
 
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);

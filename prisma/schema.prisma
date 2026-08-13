@@ -12,6 +12,7 @@ model User {
   name                     String
   email                    String         @unique
   password                 String
+  role                     Role           @default(USER)
   createdAT                DateTime       @default(now())
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
@@ -79,4 +80,10 @@ enum EventStatus {
 enum TeamStatus {
   PUBLISHED
   UNPUBLISHED
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERADMIN
 }

@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import bcrypt from "bcryptjs";
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -230,4 +231,92 @@ export const getAdminDashboard = (req, res) => {
 </html>`;
   res.setHeader("Content-Type", "text/html");
   return res.send(html);
+};
+
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password, role = "USER" } = req.body;
+
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) {
+      return res.status(400).json({ error: "A user with that email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword, role },
+      select: { id: true, name: true, email: true, role: true, createdAT: true },
+    });
+
+    return res.status(201).json({ message: "User created successfully", user });
+  } catch (error) {
+    console.error("CREATE USER ERROR:", error);
+    return res.status(500).json({ error: "Failed to create user" });
+  }
+};
+
+export const getUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: { id: true, name: true, email: true, role: true, createdAT: true },
+      orderBy: { createdAT: "asc" },
+    });
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.error("GET USERS ERROR:", error);
+    return res.status(500).json({ error: "Failed to fetch users" });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (id === req.user.id) {
+      return res.status(400).json({ error: "You cannot delete your own account" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await prisma.user.delete({ where: { id } });
+    return res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("DELETE USER ERROR:", error);
+    return res.status(500).json({ error: "Failed to delete user" });
+  }
+};
+
+export const updateUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    if (!["USER", "ADMIN", "SUPERADMIN"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    if (id === req.user.id) {
+      return res.status(400).json({ error: "You cannot change your own role" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id },
+      data: { role },
+      select: { id: true, name: true, email: true, role: true },
+    });
+
+    return res.status(200).json({ message: "User role updated", user: updated });
+  } catch (error) {
+    console.error("UPDATE ROLE ERROR:", error);
+    return res.status(500).json({ error: "Failed to update user role" });
+  }
 };

@@ -113,7 +113,7 @@ const getCurrentUser = async (req, res) => {
     });
   }
 };
-export { register, login, logout, getCurrentUser };
+export { login, logout, getCurrentUser };
 
 export const changePassword = async (req, res) => {
   try {
