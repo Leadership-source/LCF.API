@@ -14,7 +14,7 @@
 The API supports two auth strategies. Use one consistently:
 
 **Option A — Cookie (recommended for browser apps)**
-The server sets an `httpOnly` JWT cookie on login/register automatically. Your fetch client must send credentials on every request.
+The server sets an `httpOnly` JWT cookie on login automatically. Your fetch client must send credentials on every request.
 
 ```js
 // axios
@@ -58,28 +58,7 @@ HTTP status codes used: `200`, `201`, `400`, `401`, `403`, `404`, `500`
 
 ## Auth Routes — `/auth`
 
-### Register
-`POST /auth/register`
-
-```json
-// body
-{
-  "name": "Jane Doe",          // min 2, max 100 chars
-  "email": "jane@example.com",
-  "password": "secret123"      // min 6, max 100 chars
-}
-```
-
-```json
-// 201 response
-{
-  "message": "User created successfully",
-  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com" },
-  "token": "eyJ..."
-}
-```
-
----
+> **Note:** Public self-registration has been removed. User accounts are created exclusively by a superadmin via `POST /admin/users`.
 
 ### Login
 `POST /auth/login`
@@ -96,10 +75,14 @@ HTTP status codes used: `200`, `201`, `400`, `401`, `403`, `404`, `500`
 // 200 response
 {
   "message": "Logged in successfully",
-  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com" },
+  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com", "role": "USER" },
   "token": "eyJ..."
 }
 ```
+
+Possible `role` values: `"USER"` · `"ADMIN"` · `"SUPERADMIN"`
+
+Store the `role` on the client to conditionally render admin UI.
 
 ---
 
@@ -116,7 +99,7 @@ Clears the JWT cookie. Call this on sign-out.
 ```json
 // 200 response
 {
-  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com" }
+  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com", "role": "USER" }
 }
 ```
 
@@ -156,6 +139,102 @@ The `token` comes from the link in the reset email (`?token=...`).
 ```json
 // body
 { "password": "newSecret456" }   // min 6 chars
+```
+
+---
+
+## Admin — User Management — `/admin/users`
+
+All routes below require the authenticated user to have `role: "SUPERADMIN"`. Any other role returns `403 Forbidden`.
+
+---
+
+### Create User
+`POST /admin/users` 🔒 *superadmin only*
+
+```json
+// body
+{
+  "name": "Jane Doe",           // min 2, max 100 chars
+  "email": "jane@example.com",
+  "password": "SecurePass@1",   // min 8, max 100 chars
+  "role": "USER"                // optional — "USER" | "ADMIN" | "SUPERADMIN", defaults to "USER"
+}
+```
+
+```json
+// 201 response
+{
+  "message": "User created successfully",
+  "user": {
+    "id": "uuid",
+    "name": "Jane Doe",
+    "email": "jane@example.com",
+    "role": "USER",
+    "createdAT": "2026-08-13T00:00:00.000Z"
+  }
+}
+```
+
+```json
+// 400 — email already exists
+{ "error": "A user with that email already exists" }
+```
+
+---
+
+### List All Users
+`GET /admin/users` 🔒 *superadmin only*
+
+```json
+// 200 response
+{
+  "users": [
+    { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com", "role": "USER", "createdAT": "2026-08-13T00:00:00.000Z" }
+  ]
+}
+```
+
+Ordered by `createdAT` ascending.
+
+---
+
+### Delete User
+`DELETE /admin/users/:id` 🔒 *superadmin only*
+
+```json
+// 200 response
+{ "message": "User deleted successfully" }
+```
+
+```json
+// 400 — cannot delete own account
+{ "error": "You cannot delete your own account" }
+// 404 — user not found
+{ "error": "User not found" }
+```
+
+---
+
+### Update User Role
+`PATCH /admin/users/:id/role` 🔒 *superadmin only*
+
+```json
+// body
+{ "role": "ADMIN" }   // "USER" | "ADMIN" | "SUPERADMIN"
+```
+
+```json
+// 200 response
+{
+  "message": "User role updated",
+  "user": { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com", "role": "ADMIN" }
+}
+```
+
+```json
+// 400 — cannot change own role
+{ "error": "You cannot change your own role" }
 ```
 
 ---
@@ -432,6 +511,9 @@ try {
     errors.forEach(({ field, message }) => showFieldError(field, message));
   } else if (err.response?.status === 401) {
     // redirect to login
+  } else if (err.response?.status === 403) {
+    // user is authenticated but lacks superadmin access
+    toast.error("You do not have permission to perform this action.");
   } else {
     // generic error toast
     toast.error(err.response?.data?.message ?? "Something went wrong");
