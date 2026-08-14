@@ -384,13 +384,41 @@ All fields optional. Only the creating user can update.
 // body
 {
   "name": "Jane Doe",           // min 2 chars
-  "email": "jane@example.com"
+  "email": "jane@example.com",
+  "phone": "+44 7700 900000"    // optional
 }
 ```
 
 ```json
 // 200 response
-{ "status": "success", "message": "You have registered for Leadership Summit 2026" }
+{ "status": "success", "message": "You have successfully registered for Leadership Summit 2026" }
+```
+
+```json
+// 409 — already registered with this email
+{ "status": "error", "message": "This email address has already registered for this event" }
+// 400 — event not published
+{ "status": "error", "message": "Event is not open for registration" }
+```
+
+---
+
+### Get Event Attendees (admin)
+`GET /events/:id/attendees` 🔒 *requires auth*
+
+Returns the full attendee list for a specific event. Use the browser print dialog (`window.print()`) on this data to produce a printable list.
+
+```json
+// 200 response
+{
+  "status": "success",
+  "event": { "id": "uuid", "title": "Leadership Summit 2026", "date": "2026-09-15T00:00:00.000Z", "location": "London" },
+  "total": 2,
+  "attendees": [
+    { "id": "uuid", "name": "Jane Doe", "email": "jane@example.com", "phone": "+44 7700 900000", "registeredAt": "2026-08-14T00:00:00.000Z" },
+    { "id": "uuid", "name": "John Smith", "email": "john@example.com", "phone": null, "registeredAt": "2026-08-14T01:00:00.000Z" }
+  ]
+}
 ```
 
 ---

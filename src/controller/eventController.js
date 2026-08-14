@@ -350,63 +350,116 @@ export const getEvent = async (req, res) => {
 export const registerForEvent = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, email, phone } = req.body;
 
-    // Validate registration details
-    if (!name || !email) {
-      return res.status(400).json({
-        status: "error",
-        message: "Name and email are required",
-      });
-    }
-
-    // Find the event
-    const event = await prisma.event.findUnique({
-      where: {
-        id,
-      },
-    });
+    const event = await prisma.event.findUnique({ where: { id } });
 
     if (!event) {
-      return res.status(404).json({
+      return res.status(404).json({ status: "error", message: "Event not found" });
+    }
+
+    if (event.status !== "PUBLISHED") {
+      return res.status(400).json({ status: "error", message: "Event is not open for registration" });
+    }
+
+    // Prevent duplicate registration by the same email
+    const existing = await prisma.eventRegistration.findUnique({
+      where: { eventId_email: { eventId: id, email } },
+    });
+
+    if (existing) {
+      return res.status(409).json({
         status: "error",
-        message: "Event not found",
+        message: "This email address has already registered for this event",
       });
     }
 
-    // Send email to the organization
+    await prisma.eventRegistration.create({
+      data: { eventId: id, name, email, phone: phone ?? null },
+    });
+
+    // Notify org of new registration
     await sendEmail({
       to: process.env.EVENT_REGISTRATION_EMAIL,
       subject: `New Event Registration - ${event.title}`,
       html: `
         <h2>New Event Registration</h2>
-
         <p><strong>Event:</strong> ${event.title}</p>
         <p><strong>Category:</strong> ${event.category}</p>
-
         <hr />
-
         <p><strong>Participant Name:</strong> ${name}</p>
         <p><strong>Participant Email:</strong> ${email}</p>
+        ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ""}
+        <p>Someone has registered for this event through the Leadership Conference Forum website.</p>
+      `,
+    });
 
-        <p>
-          Someone has registered for this event through the
-          Leadership Conference Forum website.
-        </p>
+    // Confirmation email to the registrant
+    const eventDate = new Date(event.date).toLocaleDateString("en-GB", {
+      weekday: "long", year: "numeric", month: "long", day: "numeric",
+    });
+
+    await sendEmail({
+      to: email,
+      subject: `Registration Confirmed – ${event.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; color: #1a1a2e;">
+          <h2 style="color: #4a6cf7;">You're registered!</h2>
+          <p>Hi ${name},</p>
+          <p>Thank you for registering for <strong>${event.title}</strong>. We look forward to seeing you there.</p>
+
+          <table style="width:100%; border-collapse:collapse; margin: 20px 0;">
+            <tr><td style="padding:8px 0; border-bottom:1px solid #eee; font-weight:600; width:120px;">Event</td><td style="padding:8px 0; border-bottom:1px solid #eee;">${event.title}</td></tr>
+            <tr><td style="padding:8px 0; border-bottom:1px solid #eee; font-weight:600;">Date</td><td style="padding:8px 0; border-bottom:1px solid #eee;">${eventDate}</td></tr>
+            <tr><td style="padding:8px 0; border-bottom:1px solid #eee; font-weight:600;">Time</td><td style="padding:8px 0; border-bottom:1px solid #eee;">${event.time}</td></tr>
+            <tr><td style="padding:8px 0; border-bottom:1px solid #eee; font-weight:600;">Venue</td><td style="padding:8px 0; border-bottom:1px solid #eee;">${event.venue}</td></tr>
+            <tr><td style="padding:8px 0; font-weight:600;">Location</td><td style="padding:8px 0;">${event.location}</td></tr>
+          </table>
+
+          <p>If you have any questions, please reply to this email or contact us directly.</p>
+          <p>Regards,<br/>Leadership Conference Forum</p>
+        </div>
       `,
     });
 
     return res.status(200).json({
       status: "success",
-      message: `You have registered for ${event.title}`,
+      message: `You have successfully registered for ${event.title}`,
     });
   } catch (error) {
     console.error("EVENT REGISTRATION ERROR:", error);
+    return res.status(500).json({ status: "error", message: "Failed to process registration." });
+  }
+};
 
-    return res.status(500).json({
-      status: "error",
-      message: "Failed to process registration.",
+export const getEventAttendees = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, title: true, date: true, location: true },
     });
+
+    if (!event) {
+      return res.status(404).json({ status: "error", message: "Event not found" });
+    }
+
+    const attendees = await prisma.eventRegistration.findMany({
+      where: { eventId: id },
+      orderBy: { registeredAt: "asc" },
+      select: { id: true, name: true, email: true, phone: true, registeredAt: true },
+    });
+
+    return res.status(200).json({
+      status: "success",
+      event,
+      total: attendees.length,
+      attendees,
+    });
+  } catch (error) {
+    console.error("GET ATTENDEES ERROR:", error);
+    return res.status(500).json({ status: "error", message: "Failed to fetch attendees." });
   }
 };
 

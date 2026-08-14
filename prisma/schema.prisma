@@ -49,6 +49,7 @@ model Event {
   createdBy   String
   status      EventStatus @default(UNPUBLISHED)
   creator     User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  registrations EventRegistration[]
 }
 
 model Notification {
@@ -70,6 +71,18 @@ model ContactMessage {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model EventRegistration {
+  id           String   @id @default(uuid())
+  eventId      String
+  name         String
+  email        String
+  phone        String?
+  registeredAt DateTime @default(now())
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, email])
 }
 
 enum EventStatus {

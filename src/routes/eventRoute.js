@@ -8,6 +8,7 @@ import {
   deleteEvent,
   getEvent,
   registerForEvent,
+  getEventAttendees,
   getPublicEvents,
   updateEventStatus,
 } from "../controller/eventController.js";
@@ -62,6 +63,8 @@ router.put(
 );
 
 router.patch("/:id/status", authMiddleware, updateEventStatus);
+
+router.get("/:id/attendees", authMiddleware, getEventAttendees);
 
 router.delete("/:id", authMiddleware, deleteEvent);
 
