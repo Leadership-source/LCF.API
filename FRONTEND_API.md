@@ -404,7 +404,7 @@ All fields optional. Only the creating user can update.
 ---
 
 ### Get Event Attendees (admin)
-`GET /events/:id/attendees` 🔒 *requires auth*
+`GET /events/:id/attendees` 🔒 *superadmin only*
 
 Returns the full attendee list for a specific event. Use the browser print dialog (`window.print()`) on this data to produce a printable list.
 
