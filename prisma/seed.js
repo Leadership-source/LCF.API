@@ -21,6 +21,19 @@ const main = async () => {
     },
   });
 
+  const hashedPassword2 = await bcrypt.hash("Change@2026", 10);
+
+  await prisma.user.upsert({
+    where: { email: "okoye2k4real@gmail.com" },
+    update: { role: "SUPERADMIN" },
+    create: {
+      name: "Okoye",
+      email: "okoye2k4real@gmail.com",
+      password: hashedPassword2,
+      role: "SUPERADMIN",
+    },
+  });
+
   console.log("Admin user seeded.");
 
   console.log("Seeding teams...");

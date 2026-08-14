@@ -63,7 +63,7 @@ const login = async (req, res) => {
 
   return res.status(200).json({
     message: "Logged in successfully",
-    user: { id: user.id, name: user.name, email: user.email },
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
     token,
   });
   } catch (error) {
@@ -93,6 +93,7 @@ const getCurrentUser = async (req, res) => {
         id: true,
         name: true,
         email: true,
+        role: true,
       },
     });
 
