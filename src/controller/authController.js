@@ -5,45 +5,6 @@ import crypto from "crypto";
 import { generateToken } from "../utils/generateToken.js";
 import { sendPasswordResetEmail } from "../utils/emailService.js";
 
-const register = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    const userExists = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (userExists) {
-      return res.status(400).json({
-        error: "User already exists",
-      });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-      },
-    });
-
-    const token = generateToken(user.id, res);
-    return res.status(201).json({
-      message: "User created successfully",
-      user: { id: user.id, name: user.name, email: user.email },
-      token,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      error: "Registration failed. Please try again.",
-    });
-  }
-};
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;

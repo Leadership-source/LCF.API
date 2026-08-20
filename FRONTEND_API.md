@@ -478,6 +478,92 @@ api.post("/events", form);
 
 ---
 
+## Testimonials — `/testimonials`
+
+### Submit Testimonial (public)
+`POST /testimonials` — no auth required
+
+```json
+// body
+{
+  "name": "Jane Doe",
+  "role": "Community Member",   // person's title/role, not a system role
+  "message": "This organisation changed my life..."
+}
+```
+
+```json
+// 201 response
+{
+  "status": "success",
+  "message": "Thank you for your review. It has been submitted for approval.",
+  "testimonial": { "id": "uuid", "name": "Jane Doe", "role": "Community Member", "message": "...", "status": "PENDING" }
+}
+```
+
+Admins are notified via the notifications system when a new testimonial is submitted.
+
+---
+
+### Get Approved Testimonials (public)
+`GET /testimonials/approved` — no auth required
+
+```json
+// 200 response
+{
+  "status": "success",
+  "testimonials": [
+    { "id": "uuid", "name": "Jane Doe", "role": "Community Member", "message": "...", "approvedAt": "2026-08-20T00:00:00.000Z" }
+  ]
+}
+```
+
+---
+
+### Get All Testimonials (admin)
+`GET /testimonials/admin` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Returns all testimonials regardless of status (`PENDING`, `APPROVED`, `REJECTED`).
+
+```json
+// 200 response
+{ "status": "success", "testimonials": [ { ...testimonialObject } ] }
+```
+
+---
+
+### Approve Testimonial (admin)
+`PATCH /testimonials/admin/:id/approve` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{ "status": "success", "message": "Testimonial approved successfully", "testimonial": { ...testimonialObject } }
+```
+
+---
+
+### Reject Testimonial (admin)
+`PATCH /testimonials/admin/:id/reject` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{ "status": "success", "message": "Testimonial rejected", "testimonial": { ...testimonialObject } }
+```
+
+---
+
+### Delete Testimonial (admin)
+`DELETE /testimonials/admin/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{ "status": "success", "message": "Testimonial deleted successfully" }
+```
+
+Possible `status` values: `"PENDING"` · `"APPROVED"` · `"REJECTED"`
+
+---
+
 ## Notifications — `/notifications`
 
 ### Get My Notifications

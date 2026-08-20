@@ -96,7 +96,7 @@ model Testimonial {
   approvedAt DateTime?
   approvedBy String?
   userId     String?
-  user       User?             @relation(fields: [userId], references: [id])
+  user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 enum TestimonialStatus {

@@ -6,7 +6,7 @@ import {
   getAdminTestimonials,
   getApprovedTestimonials,
   rejectTestimonial,
-} from "../controller/testmonialController.js";
+} from "../controller/testimonialController.js";
 import { authMiddleware, requireAdmin } from "../middleWare/authMiddleWare.js";
 
 const router = express.Router();
