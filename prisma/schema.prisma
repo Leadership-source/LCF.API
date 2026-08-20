@@ -12,13 +12,14 @@ model User {
   name                     String
   email                    String         @unique
   password                 String
-  role                     Role           @default(USER)
   createdAT                DateTime       @default(now())
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
+  role                     Role           @default(USER)
   events                   Event[]
   notifications            Notification[]
   teams                    Team[]
+  testimonials             Testimonial[]
 }
 
 model Team {
@@ -33,22 +34,22 @@ model Team {
 }
 
 model Event {
-  id          String      @id @default(uuid())
-  category    String
-  title       String
-  image       String
-  location    String
-  date        DateTime
-  time        String
-  description String
-  speaker     String
-  venue       String
-  attendees   Int
-  agenda      String[]
-  createdAt   DateTime    @default(now())
-  createdBy   String
-  status      EventStatus @default(UNPUBLISHED)
-  creator     User        @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  id            String              @id @default(uuid())
+  category      String
+  title         String
+  image         String
+  location      String
+  date          DateTime
+  time          String
+  description   String
+  speaker       String
+  venue         String
+  attendees     Int
+  agenda        String[]
+  createdAt     DateTime            @default(now())
+  createdBy     String
+  status        EventStatus         @default(UNPUBLISHED)
+  creator       User                @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   registrations EventRegistration[]
 }
 
@@ -83,6 +84,25 @@ model EventRegistration {
   event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, email])
+}
+
+model Testimonial {
+  id         String            @id @default(uuid())
+  name       String
+  role       String
+  message    String
+  status     TestimonialStatus @default(PENDING)
+  createdAt  DateTime          @default(now())
+  approvedAt DateTime?
+  approvedBy String?
+  userId     String?
+  user       User?             @relation(fields: [userId], references: [id])
+}
+
+enum TestimonialStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum EventStatus {
