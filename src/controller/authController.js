@@ -46,26 +46,31 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
-  if (!user) {
-    return res.status(401).json({ error: "Invalid email or password" });
-  }
+    const { email, password } = req.body;
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (!user) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(401).json({ error: "Invalid email or password" });
-  }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
 
-  const token = generateToken(user.id, res);
+    const token = generateToken(user.id, res);
 
-  return res.status(200).json({
-    message: "Logged in successfully",
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
-    token,
-  });
+    return res.status(200).json({
+      message: "Logged in successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Login failed. Please try again." });
@@ -213,7 +218,7 @@ export const forgotPassword = async (req, res) => {
 
     const resetLink = `${
       process.env.FRONTEND_URL
-    }/admin/reset-password?token=${resetToken}`;
+    }#/admin/reset-password?token=${resetToken}`;
 
     await sendPasswordResetEmail({
       email: user.email,

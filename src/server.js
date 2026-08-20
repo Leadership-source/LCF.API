@@ -9,6 +9,7 @@ import contactRoutes from "./routes/contactRoute.js";
 import notificationRoute from "./routes/notificationRoutes.js";
 import adminRoute from "./routes/adminRoute.js";
 import cookieParser from "cookie-parser";
+import testimonialRoutes from "./routes/testimonialRoute.js";
 
 import { connectDB, disconnectDB } from "./config/db.js";
 
@@ -24,6 +25,7 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use("/testimonials", testimonialRoutes);
 
 app.use("/", leaderRoute);
 app.use("/auth", authRoute);

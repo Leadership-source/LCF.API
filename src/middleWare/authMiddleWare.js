@@ -57,7 +57,25 @@ export const authMiddleware = async (req, res, next) => {
 
 export const requireSuperAdmin = (req, res, next) => {
   if (req.user?.role !== "SUPERADMIN") {
-    return res.status(403).json({ error: "Forbidden: superadmin access required" });
+    return res
+      .status(403)
+      .json({ error: "Forbidden: superadmin access required" });
   }
+  next();
+};
+
+export const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      error: "Authentication required",
+    });
+  }
+
+  if (!["ADMIN", "SUPERADMIN"].includes(req.user.role)) {
+    return res.status(403).json({
+      error: "Admin authorization required",
+    });
+  }
+
   next();
 };
