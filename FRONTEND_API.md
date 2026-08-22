@@ -560,6 +560,27 @@ Returns all testimonials regardless of status (`PENDING`, `APPROVED`, `REJECTED`
 { "status": "success", "message": "Testimonial deleted successfully" }
 ```
 
+---
+
+### Edit Testimonial (admin)
+`PUT /testimonials/admin/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+All fields are optional — only supplied fields are updated.
+
+```json
+// body
+{
+  "name": "Jane Doe",          // optional
+  "role": "Community Member",  // optional
+  "message": "Updated text..." // optional
+}
+```
+
+```json
+// 200 response
+{ "status": "success", "message": "Testimonial updated successfully", "testimonial": { ...testimonialObject } }
+```
+
 Possible `status` values: `"PENDING"` · `"APPROVED"` · `"REJECTED"`
 
 ---

@@ -207,6 +207,37 @@ export const rejectTestimonial = async (req, res) => {
   }
 };
 
+export const updateTestimonial = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, role, message } = req.body;
+
+    const testimonial = await prisma.testimonial.findUnique({ where: { id } });
+
+    if (!testimonial) {
+      return res.status(404).json({ status: "error", message: "Testimonial not found" });
+    }
+
+    const updated = await prisma.testimonial.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(role !== undefined && { role: role.trim() }),
+        ...(message !== undefined && { message: message.trim() }),
+      },
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Testimonial updated successfully",
+      testimonial: updated,
+    });
+  } catch (error) {
+    console.error("UPDATE TESTIMONIAL ERROR:", error);
+    return res.status(500).json({ status: "error", message: "Failed to update testimonial" });
+  }
+};
+
 export const deleteTestimonial = async (req, res) => {
   try {
     const { id } = req.params;

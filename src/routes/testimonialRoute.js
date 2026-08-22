@@ -6,6 +6,7 @@ import {
   getAdminTestimonials,
   getApprovedTestimonials,
   rejectTestimonial,
+  updateTestimonial,
 } from "../controller/testimonialController.js";
 import { authMiddleware, requireAdmin } from "../middleWare/authMiddleWare.js";
 
@@ -24,6 +25,8 @@ router.patch(
 );
 
 router.delete("/admin/:id", authMiddleware, requireAdmin, deleteTestimonial);
+
+router.put("/admin/:id", authMiddleware, requireAdmin, updateTestimonial);
 
 router.patch(
   "/admin/:id/reject",
