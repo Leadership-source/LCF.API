@@ -16,7 +16,7 @@ import { connectDB, disconnectDB } from "./config/db.js";
 const app = express();
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: "http://localhost:5173",
     credentials: true,
   }),
 );
@@ -67,3 +67,5 @@ process.on("SIGTERM", async () => {
     process.exit(0);
   });
 });
+
+// process.env.CORS_ORIGIN || "http://localhost:5173"
