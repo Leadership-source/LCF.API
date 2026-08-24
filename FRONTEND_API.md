@@ -278,6 +278,7 @@ Teams are ordered by `displayOrder` ascending.
 |---|---|---|
 | `name` | string (min 2, max 100) | ✅ |
 | `role` | string (min 2, max 150) | ✅ |
+| `bio` | string (max 1000) | optional |
 | `image` | file (max 5MB) | ✅ |
 | `displayOrder` | number (int ≥ 0) | optional |
 
@@ -306,6 +307,7 @@ All fields optional. Only the creating user can update.
 |---|---|
 | `name` | string |
 | `role` | string |
+| `bio` | string (max 1000, set to empty string to clear) |
 | `image` | file (new image, optional) |
 | `status` | `"PUBLISHED"` \| `"UNPUBLISHED"` |
 | `displayOrder` | number |

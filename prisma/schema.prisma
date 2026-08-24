@@ -26,6 +26,7 @@ model Team {
   id           String     @id @default(uuid())
   name         String
   role         String
+  bio          String?
   image        String
   createdBy    String
   displayOrder Int        @default(0)

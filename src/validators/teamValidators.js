@@ -11,6 +11,11 @@ export const createTeamSchema = z.object({
     .min(2, "Role must be at least 2 characters")
     .max(150, "Role cannot exceed 150 characters"),
 
+  bio: z
+    .string()
+    .max(1000, "Bio cannot exceed 1000 characters")
+    .optional(),
+
   status: z.enum(["PUBLISHED", "UNPUBLISHED"]).optional(),
 
   displayOrder: z.coerce
@@ -24,6 +29,8 @@ export const updateTeamSchema = z.object({
   name: z.string().min(2).max(100).optional(),
 
   role: z.string().min(2).max(150).optional(),
+
+  bio: z.string().max(1000).optional(),
 
   image: z.string().url().optional(),
 

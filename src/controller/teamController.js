@@ -5,7 +5,7 @@ import { createNotification } from "../service/notificationService.js";
 // Create Team Member
 export const createTeam = async (req, res) => {
   try {
-    const { name, role } = req.body;
+    const { name, role, bio } = req.body;
 
     if (!name || !role) {
       return res.status(400).json({
@@ -40,6 +40,7 @@ export const createTeam = async (req, res) => {
       data: {
         name: name.trim(),
         role: role.trim(),
+        bio: bio ? bio.trim() : null,
         image: result.secure_url,
         status: "UNPUBLISHED",
         creator: {
@@ -106,7 +107,7 @@ export const getTeams = async (req, res) => {
 export const updateTeam = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, role, status, displayOrder } = req.body;
+    const { name, role, bio, status, displayOrder } = req.body;
 
     // Check if the team member exists
     const team = await prisma.team.findUnique({
@@ -148,6 +149,7 @@ export const updateTeam = async (req, res) => {
       data: {
         name: name ?? team.name,
         role: role ?? team.role,
+        bio: bio !== undefined ? (bio ? bio.trim() : null) : team.bio,
         image: imageUrl,
         status: status ?? team.status,
         displayOrder: displayOrder ?? team.displayOrder,
