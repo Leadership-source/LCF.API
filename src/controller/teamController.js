@@ -195,8 +195,7 @@ export const deleteTeam = async (req, res) => {
       });
     }
 
-    // Check if the logged-in user created this team member
-    if (team.createdBy !== req.user.id) {
+    if (team.createdBy !== req.user.id && req.user.role !== "SUPERADMIN") {
       return res.status(403).json({
         status: "error",
         message: "You are not authorized to delete this team member.",
@@ -250,7 +249,7 @@ export const updateTeamStatus = async (req, res) => {
       });
     }
 
-    if (team.createdBy !== req.user.id) {
+    if (team.createdBy !== req.user.id && req.user.role !== "SUPERADMIN") {
       return res.status(403).json({
         status: "error",
         message: "You are not authorized to update this team member",
@@ -277,6 +276,33 @@ export const updateTeamStatus = async (req, res) => {
     return res.status(500).json({
       status: "error",
       message: "Failed to update team status.",
+    });
+  }
+};
+
+export const reorderTeams = async (req, res) => {
+  try {
+    const { orders } = req.body;
+
+    if (!Array.isArray(orders) || orders.length === 0) {
+      return res.status(400).json({
+        status: "error",
+        message: "orders must be a non-empty array",
+      });
+    }
+
+    await prisma.$transaction(
+      orders.map(({ id, displayOrder }) =>
+        prisma.team.update({ where: { id }, data: { displayOrder } }),
+      ),
+    );
+
+    return res.status(200).json({ message: "Display order updated" });
+  } catch (error) {
+    console.error("REORDER TEAMS ERROR:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to reorder team members.",
     });
   }
 };

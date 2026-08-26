@@ -25,6 +25,17 @@ export const createTeamSchema = z.object({
     .optional(),
 });
 
+export const reorderTeamsSchema = z.object({
+  orders: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        displayOrder: z.number().int().min(1),
+      }),
+    )
+    .min(1, "orders must be a non-empty array"),
+});
+
 export const updateTeamSchema = z.object({
   name: z.string().min(2).max(100).optional(),
 

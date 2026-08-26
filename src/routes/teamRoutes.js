@@ -7,6 +7,7 @@ import {
   deleteTeam,
   updateTeamStatus,
   getPublishedTeams,
+  reorderTeams,
 } from "../controller/teamController.js";
 
 import { authMiddleware } from "../middleWare/authMiddleWare.js";
@@ -15,6 +16,7 @@ import { validate } from "../middleWare/validateRequest.js";
 import {
   createTeamSchema,
   updateTeamSchema,
+  reorderTeamsSchema,
 } from "../validators/teamValidators.js";
 
 const router = express.Router();
@@ -43,6 +45,13 @@ router.put(
   upload.single("image"),
   validate(updateTeamSchema),
   updateTeam,
+);
+
+router.patch(
+  "/reorder",
+  authMiddleware,
+  validate(reorderTeamsSchema),
+  reorderTeams,
 );
 
 router.delete("/:id", authMiddleware, deleteTeam);
