@@ -10,6 +10,7 @@ import notificationRoute from "./routes/notificationRoutes.js";
 import adminRoute from "./routes/adminRoute.js";
 import cookieParser from "cookie-parser";
 import testimonialRoutes from "./routes/testimonialRoute.js";
+import newsRoutes from "./routes/newsRoute.js";
 
 import { connectDB, disconnectDB } from "./config/db.js";
 
@@ -34,6 +35,7 @@ app.use("/events", eventRoute);
 app.use("/notifications", notificationRoute);
 app.use("/contact", contactRoutes);
 app.use("/admin", adminRoute);
+app.use("/news", newsRoutes);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
@@ -67,5 +69,7 @@ process.on("SIGTERM", async () => {
     process.exit(0);
   });
 });
+
+// process.env.CORS_ORIGIN || "http://localhost:5173"
 
 // process.env.CORS_ORIGIN || "http://localhost:5173"

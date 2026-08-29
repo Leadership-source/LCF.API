@@ -100,6 +100,20 @@ model Testimonial {
   user       User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
+model NewsArticle {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String
+  date        DateTime
+  readTime    String?
+  image       String
+  excerpt     String
+  content     String
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 enum TestimonialStatus {
   PENDING
   APPROVED
