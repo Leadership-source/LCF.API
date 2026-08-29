@@ -2,7 +2,6 @@ import { prisma } from "../config/db.js";
 import cloudinary from "../config/cloudinary.js";
 import { createNotification } from "../service/notificationService.js";
 
-/
 const uploadNewsImage = async (buffer) => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -116,7 +115,6 @@ export const createNewsArticle = async (req, res) => {
   try {
     const { title, category, date, readTime, excerpt, content } = req.body;
 
-    
     if (!title || !category || !date || !excerpt || !content) {
       return res.status(400).json({
         status: "error",
@@ -134,7 +132,6 @@ export const createNewsArticle = async (req, res) => {
       });
     }
 
-    
     const articleDate = new Date(date);
 
     if (Number.isNaN(articleDate.getTime())) {
@@ -144,10 +141,8 @@ export const createNewsArticle = async (req, res) => {
       });
     }
 
-    
     const result = await uploadNewsImage(req.file.buffer);
 
-    
     const article = await prisma.newsArticle.create({
       data: {
         title,
@@ -158,12 +153,10 @@ export const createNewsArticle = async (req, res) => {
         excerpt,
         content,
 
-        
         isPublished: false,
       },
     });
 
-    
     if (req.user?.id) {
       await createNotification({
         userId: req.user.id,
@@ -186,7 +179,6 @@ export const createNewsArticle = async (req, res) => {
     });
   }
 };
-
 
 export const updateNewsArticle = async (req, res) => {
   try {
@@ -219,10 +211,8 @@ export const updateNewsArticle = async (req, res) => {
 
     const { title, category, date, readTime, excerpt, content } = req.body;
 
-   
     let imageUrl = existingArticle.image;
 
-    
     if (req.file) {
       const result = await uploadNewsImage(req.file.buffer);
 
@@ -244,7 +234,6 @@ export const updateNewsArticle = async (req, res) => {
       articleDate = parsedDate;
     }
 
-    
     const updatedArticle = await prisma.newsArticle.update({
       where: {
         id: articleId,
@@ -261,7 +250,6 @@ export const updateNewsArticle = async (req, res) => {
       },
     });
 
-    
     if (req.user?.id) {
       await createNotification({
         userId: req.user.id,
@@ -284,7 +272,6 @@ export const updateNewsArticle = async (req, res) => {
     });
   }
 };
-
 
 export const updateNewsStatus = async (req, res) => {
   try {
