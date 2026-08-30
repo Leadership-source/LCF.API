@@ -71,5 +71,3 @@ process.on("SIGTERM", async () => {
 });
 
 // process.env.CORS_ORIGIN || "http://localhost:5173"
-
-// process.env.CORS_ORIGIN || "http://localhost:5173"

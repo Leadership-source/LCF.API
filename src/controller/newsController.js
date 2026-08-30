@@ -31,11 +31,12 @@ export const getNewsArticles = async (req, res) => {
       },
     });
 
-    res.status(200).json(articles);
+    return res.status(200).json({ status: "success", data: articles });
   } catch (error) {
     console.error("Get news error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
+      status: "error",
       message: "Failed to fetch news articles",
     });
   }
@@ -53,11 +54,12 @@ export const getPublicNewsArticles = async (req, res) => {
       },
     });
 
-    res.status(200).json(articles);
+    return res.status(200).json({ status: "success", data: articles });
   } catch (error) {
     console.error("Get public news error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
+      status: "error",
       message: "Failed to fetch public news articles",
     });
   }
@@ -291,22 +293,31 @@ export const updateNewsStatus = async (req, res) => {
       });
     }
 
+    const existing = await prisma.newsArticle.findUnique({ where: { id } });
+
+    if (!existing) {
+      return res.status(404).json({
+        status: "error",
+        message: "News article not found.",
+      });
+    }
+
     const article = await prisma.newsArticle.update({
       where: { id },
       data: { isPublished },
     });
 
-    res.status(200).json({
-      message: `News article ${
-        isPublished ? "published" : "unpublished"
-      } successfully`,
-      article,
+    return res.status(200).json({
+      status: "success",
+      message: `News article ${isPublished ? "published" : "unpublished"} successfully.`,
+      data: article,
     });
   } catch (error) {
     console.error("Update news status error:", error);
 
-    res.status(500).json({
-      message: "Failed to update news status",
+    return res.status(500).json({
+      status: "error",
+      message: "Failed to update news status.",
     });
   }
 };
@@ -336,13 +347,15 @@ export const deleteNewsArticle = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "News article deleted successfully",
+      status: "success",
+      message: "News article deleted successfully.",
     });
   } catch (error) {
     console.error("Delete news error:", error);
 
     return res.status(500).json({
-      message: "Failed to delete news article",
+      status: "error",
+      message: "Failed to delete news article.",
     });
   }
 };
