@@ -114,6 +114,43 @@ model NewsArticle {
   updatedAt   DateTime @updatedAt
 }
 
+
+
+model LeaderQuote {
+  id          String      @id @default(uuid())
+  name        String
+  role        String
+  email       String?
+  quote       String      @db.Text
+  status      QuoteStatus @default(DRAFT)
+  source      QuoteSource @default(ADMIN)
+  createdBy   String?
+  reviewedBy  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  publishedAt DateTime?
+
+  @@index([status])
+  @@index([source])
+  @@index([createdAt])
+}
+
+model QuoteInvitation {
+  id          String   @id @default(uuid())
+  email       String
+  token       String   @unique
+
+  expiresAt   DateTime
+  usedAt      DateTime?
+  cancelledAt DateTime?
+
+  createdAt   DateTime @default(now())
+  createdBy   String
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
 enum TestimonialStatus {
   PENDING
   APPROVED
@@ -134,4 +171,16 @@ enum Role {
   USER
   ADMIN
   SUPERADMIN
+}
+
+enum QuoteStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  REJECTED
+}
+
+enum QuoteSource {
+  ADMIN
+  INVITATION
 }

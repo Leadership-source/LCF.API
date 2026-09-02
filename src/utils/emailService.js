@@ -105,3 +105,120 @@ export const sendContactEmail = async ({
 
   await sgMail.send(mail);
 };
+
+export const sendQuoteInvitationEmail = async ({
+  email,
+  invitationLink,
+  expiresAt,
+}) => {
+  const message = {
+    to: email,
+    from: process.env.SENDGRID_FROM_EMAIL,
+    subject: "You're Invited to Share Your Leadership Quote",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; line-height: 1.6;">
+        
+        <h2 style="color: #111827;">
+          Share Your Leadership Quote
+        </h2>
+
+        <p>Hello,</p>
+
+        <p>
+          We would be honored to feature your thoughts and perspective
+          on leadership with the Leadership Conference Forum community.
+        </p>
+
+        <p>
+          We invite you to share an inspirational quote or thought
+          that reflects your experience, leadership journey, or perspective.
+        </p>
+
+        <p style="margin: 30px 0;">
+          <a
+            href="${invitationLink}"
+            style="
+              display: inline-block;
+              padding: 12px 22px;
+              background-color: #f97316;
+              color: #ffffff;
+              text-decoration: none;
+              border-radius: 6px;
+              font-weight: bold;
+            "
+          >
+            Submit Your Quote
+          </a>
+        </p>
+
+        <p>
+          This invitation link is valid for <strong>12 hours</strong>.
+        </p>
+
+        <p>
+          Invitation expires at:
+          <strong>${new Date(expiresAt).toLocaleString()}</strong>
+        </p>
+
+        <p>
+          If you did not expect this invitation, you can safely ignore
+          this email.
+        </p>
+
+        <p style="margin-top: 30px;">
+          Regards,<br />
+          <strong>Leadership Conference Forum</strong>
+        </p>
+
+      </div>
+    `,
+  };
+
+  await sgMail.send(message);
+};
+
+export const sendQuoteRejectionEmail = async ({ email, name }) => {
+  try {
+    const response = await sendEmail({
+      to: email,
+      subject: "Your Leadership Quote Submission",
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #f97316;">
+            Quote Submission Update
+          </h2>
+
+          <p>Dear ${name},</p>
+
+          <p>
+            Thank you for taking the time to submit your leadership quote
+            to the Leadership Conference Forum.
+          </p>
+
+          <p>
+            After reviewing your submission, we are unable to approve
+            the quote for publication at this time.
+          </p>
+
+          <p>
+            We appreciate your contribution and your willingness to share
+            your leadership experience with our community.
+          </p>
+
+          <p>
+            Thank you for your understanding.
+          </p>
+
+          <p>
+            Best regards,<br />
+            Leadership Conference Forum
+          </p>
+        </div>
+      `,
+    });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

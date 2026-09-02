@@ -21,7 +21,10 @@ import {
 } from "../validators/eventValidators.js";
 
 import { registerForEventSchema } from "../validators/registerForEventValidators.js";
-import { authMiddleware, requireSuperAdmin } from "../middleWare/authMiddleWare.js";
+import {
+  authMiddleware,
+  requireSuperAdmin,
+} from "../middleWare/authMiddleWare.js";
 
 const router = express.Router();
 
@@ -62,10 +65,20 @@ router.put(
   updateEvent,
 );
 
-router.patch("/:id/status", authMiddleware, updateEventStatus);
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  requireSuperAdmin,
+  updateEventStatus,
+);
 
-router.get("/:id/attendees", authMiddleware, requireSuperAdmin, getEventAttendees);
+router.get(
+  "/:id/attendees",
+  authMiddleware,
+  requireSuperAdmin,
+  getEventAttendees,
+);
 
-router.delete("/:id", authMiddleware, deleteEvent);
+router.delete("/:id", authMiddleware, requireSuperAdmin, deleteEvent);
 
 export default router;
