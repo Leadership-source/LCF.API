@@ -11,6 +11,8 @@ import adminRoute from "./routes/adminRoute.js";
 import cookieParser from "cookie-parser";
 import testimonialRoutes from "./routes/testimonialRoute.js";
 import newsRoutes from "./routes/newsRoute.js";
+import quoteRoute from "./routes/quoteRoute.js";
+import quoteInvitationRoute from "./routes/quoteInvitationRoute.js";
 
 import { connectDB, disconnectDB } from "./config/db.js";
 
@@ -36,6 +38,8 @@ app.use("/notifications", notificationRoute);
 app.use("/contact", contactRoutes);
 app.use("/admin", adminRoute);
 app.use("/news", newsRoutes);
+app.use("/quotes/invitations", quoteInvitationRoute);
+app.use("/quotes", quoteRoute);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {

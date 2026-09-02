@@ -155,17 +155,12 @@ export const deleteEvent = async (req, res) => {
       });
     }
 
-    // Check ownership
-    if (event.createdBy !== req.user.id) {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to delete this event.",
-      });
-    }
+    // Delete event
     await prisma.event.delete({
       where: { id },
     });
 
+    // Notify the admin who deleted the event
     await createNotification({
       userId: req.user.id,
       message: `Event "${event.title}" was deleted.`,
@@ -355,11 +350,16 @@ export const registerForEvent = async (req, res) => {
     const event = await prisma.event.findUnique({ where: { id } });
 
     if (!event) {
-      return res.status(404).json({ status: "error", message: "Event not found" });
+      return res
+        .status(404)
+        .json({ status: "error", message: "Event not found" });
     }
 
     if (event.status !== "PUBLISHED") {
-      return res.status(400).json({ status: "error", message: "Event is not open for registration" });
+      return res.status(400).json({
+        status: "error",
+        message: "Event is not open for registration",
+      });
     }
 
     // Prevent duplicate registration by the same email
@@ -396,7 +396,10 @@ export const registerForEvent = async (req, res) => {
 
     // Confirmation email to the registrant
     const eventDate = new Date(event.date).toLocaleDateString("en-GB", {
-      weekday: "long", year: "numeric", month: "long", day: "numeric",
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
 
     await sendEmail({
@@ -428,7 +431,9 @@ export const registerForEvent = async (req, res) => {
     });
   } catch (error) {
     console.error("EVENT REGISTRATION ERROR:", error);
-    return res.status(500).json({ status: "error", message: "Failed to process registration." });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Failed to process registration." });
   }
 };
 
@@ -442,13 +447,21 @@ export const getEventAttendees = async (req, res) => {
     });
 
     if (!event) {
-      return res.status(404).json({ status: "error", message: "Event not found" });
+      return res
+        .status(404)
+        .json({ status: "error", message: "Event not found" });
     }
 
     const attendees = await prisma.eventRegistration.findMany({
       where: { eventId: id },
       orderBy: { registeredAt: "asc" },
-      select: { id: true, name: true, email: true, phone: true, registeredAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        registeredAt: true,
+      },
     });
 
     return res.status(200).json({
@@ -459,7 +472,9 @@ export const getEventAttendees = async (req, res) => {
     });
   } catch (error) {
     console.error("GET ATTENDEES ERROR:", error);
-    return res.status(500).json({ status: "error", message: "Failed to fetch attendees." });
+    return res
+      .status(500)
+      .json({ status: "error", message: "Failed to fetch attendees." });
   }
 };
 
@@ -468,6 +483,7 @@ export const updateEventStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
+    // Validate status
     if (!["PUBLISHED", "UNPUBLISHED"].includes(status)) {
       return res.status(400).json({
         status: "error",
@@ -475,6 +491,7 @@ export const updateEventStatus = async (req, res) => {
       });
     }
 
+    // Check if event exists
     const event = await prisma.event.findUnique({
       where: { id },
     });
@@ -486,13 +503,7 @@ export const updateEventStatus = async (req, res) => {
       });
     }
 
-    if (event.createdBy !== req.user.id) {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to update this event",
-      });
-    }
-
+    // Update event status
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
