@@ -25,6 +25,14 @@ export const updateQuoteSchema = z.object({
   role: z.string().min(2).max(150).optional(),
 
   quote: z.string().min(10).max(2000).optional(),
+});
 
-  status: z.enum(["DRAFT", "PENDING", "PUBLISHED", "REJECTED"]).optional(),
+export const quoteInvitationSchema = z.object({
+  email: z.string().trim().email("Please provide a valid email address").max(254),
+});
+
+export const quoteInvitationSubmissionSchema = createQuoteSchema.pick({
+  name: true,
+  role: true,
+  quote: true,
 });

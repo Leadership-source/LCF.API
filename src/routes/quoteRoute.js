@@ -14,6 +14,7 @@ import { validate } from "../middleWare/validateRequest.js";
 
 import {
   authMiddleware,
+  requireAdmin,
   requireSuperAdmin,
 } from "../middleWare/authMiddleWare.js";
 import {
@@ -27,13 +28,25 @@ const router = express.Router();
 router.get("/published", getPublishedQuotes);
 
 // Admin
-router.get("/", authMiddleware, getQuotes);
+router.get("/", authMiddleware, requireAdmin, getQuotes);
 
-router.get("/:id", authMiddleware, getQuote);
+router.get("/:id", authMiddleware, requireAdmin, getQuote);
 
-router.post("/", authMiddleware, validate(createQuoteSchema), createQuote);
+router.post(
+  "/",
+  authMiddleware,
+  requireAdmin,
+  validate(createQuoteSchema),
+  createQuote,
+);
 
-router.put("/:id", authMiddleware, validate(updateQuoteSchema), updateQuote);
+router.put(
+  "/:id",
+  authMiddleware,
+  requireAdmin,
+  validate(updateQuoteSchema),
+  updateQuote,
+);
 
 router.patch(
   "/:id/status",

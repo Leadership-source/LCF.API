@@ -6,6 +6,7 @@ import {
   changePassword,
   forgotPassword,
   resetPassword,
+  register,
 } from "../controller/authController.js";
 import { authMiddleware } from "../middleWare/authMiddleWare.js";
 
@@ -13,11 +14,14 @@ import { validate } from "../middleWare/validateRequest.js";
 import {
   changePasswordSchema,
   loginSchema,
+  registerSchema,
 } from "../validators/authValidators.js";
 
 const router = express.Router();
 
 router.post("/login", validate(loginSchema), login);
+
+router.post("/register", validate(registerSchema), register);
 
 router.post("/logout", logout);
 
