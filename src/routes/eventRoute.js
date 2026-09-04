@@ -23,6 +23,7 @@ import {
 import { registerForEventSchema } from "../validators/registerForEventValidators.js";
 import {
   authMiddleware,
+  requireAdmin,
   requireSuperAdmin,
 } from "../middleWare/authMiddleWare.js";
 
@@ -52,6 +53,7 @@ router.post(
 router.post(
   "/",
   authMiddleware,
+  requireAdmin,
   upload.single("image"),
   validate(createEventSchema),
   createEvent,
@@ -60,6 +62,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requireAdmin,
   upload.single("image"),
   validate(updateEventSchema),
   updateEvent,
@@ -68,7 +71,7 @@ router.put(
 router.patch(
   "/:id/status",
   authMiddleware,
-  requireSuperAdmin,
+  requireAdmin,
   updateEventStatus,
 );
 
@@ -79,6 +82,6 @@ router.get(
   getEventAttendees,
 );
 
-router.delete("/:id", authMiddleware, requireSuperAdmin, deleteEvent);
+router.delete("/:id", authMiddleware, requireAdmin, deleteEvent);
 
 export default router;

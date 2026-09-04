@@ -122,13 +122,6 @@ export const updateTeam = async (req, res) => {
     }
 
     // Check if the logged-in user created this team member
-    if (team.createdBy !== req.user.id) {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to update this team member.",
-      });
-    }
-
     let imageUrl = team.image;
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
@@ -195,13 +188,6 @@ export const deleteTeam = async (req, res) => {
       });
     }
 
-    if (team.createdBy !== req.user.id && req.user.role !== "SUPERADMIN") {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to delete this team member.",
-      });
-    }
-
     await prisma.team.delete({
       where: { id },
     });
@@ -246,13 +232,6 @@ export const updateTeamStatus = async (req, res) => {
       return res.status(404).json({
         status: "error",
         message: "Team member not found",
-      });
-    }
-
-    if (team.createdBy !== req.user.id && req.user.role !== "SUPERADMIN") {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to update this team member",
       });
     }
 

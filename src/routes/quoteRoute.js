@@ -15,7 +15,6 @@ import { validate } from "../middleWare/validateRequest.js";
 import {
   authMiddleware,
   requireAdmin,
-  requireSuperAdmin,
 } from "../middleWare/authMiddleWare.js";
 import {
   createQuoteSchema,
@@ -51,10 +50,10 @@ router.put(
 router.patch(
   "/:id/status",
   authMiddleware,
-  requireSuperAdmin,
+  requireAdmin,
   updateQuoteStatus,
 );
 
-router.delete("/:id", authMiddleware, requireSuperAdmin, deleteQuote);
+router.delete("/:id", authMiddleware, requireAdmin, deleteQuote);
 
 export default router;

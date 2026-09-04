@@ -10,7 +10,7 @@ import {
   reorderTeams,
 } from "../controller/teamController.js";
 
-import { authMiddleware } from "../middleWare/authMiddleWare.js";
+import { authMiddleware, requireAdmin } from "../middleWare/authMiddleWare.js";
 
 import { validate } from "../middleWare/validateRequest.js";
 import {
@@ -34,6 +34,7 @@ router.get("/public", getPublishedTeams);
 router.post(
   "/",
   authMiddleware,
+  requireAdmin,
   upload.single("image"),
   validate(createTeamSchema),
   createTeam,
@@ -42,6 +43,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
+  requireAdmin,
   upload.single("image"),
   validate(updateTeamSchema),
   updateTeam,
@@ -50,11 +52,12 @@ router.put(
 router.patch(
   "/reorder",
   authMiddleware,
+  requireAdmin,
   validate(reorderTeamsSchema),
   reorderTeams,
 );
 
-router.delete("/:id", authMiddleware, deleteTeam);
+router.delete("/:id", authMiddleware, requireAdmin, deleteTeam);
 
-router.patch("/:id/status", authMiddleware, updateTeamStatus);
+router.patch("/:id/status", authMiddleware, requireAdmin, updateTeamStatus);
 export default router;

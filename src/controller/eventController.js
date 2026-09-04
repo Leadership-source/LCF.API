@@ -211,13 +211,6 @@ export const updateEvent = async (req, res) => {
     }
 
     // Check ownership
-    if (event.createdBy !== req.user.id) {
-      return res.status(403).json({
-        status: "error",
-        message: "You are not authorized to update this event.",
-      });
-    }
-
     // --------------------------------
     // Image
     // --------------------------------
