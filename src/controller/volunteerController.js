@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { sendVolunteerApplicationEmail } from "../utils/emailService.js";
 
 const volunteerOptions = [
   {
@@ -36,8 +37,19 @@ const volunteerOptions = [
   },
 ];
 
+const availabilityOptions = [
+  { value: "WEEKDAYS", label: "Weekdays" },
+  { value: "WEEKENDS", label: "Weekends" },
+  { value: "BOTH", label: "Weekdays and weekends" },
+  { value: "FLEXIBLE", label: "Flexible" },
+];
+
 export const getVolunteerOptions = (_req, res) => {
-  return res.status(200).json({ status: "success", options: volunteerOptions });
+  return res.status(200).json({
+    status: "success",
+    availabilityOptions,
+    options: volunteerOptions,
+  });
 };
 
 export const createVolunteerApplication = async (req, res) => {
@@ -54,6 +66,16 @@ export const createVolunteerApplication = async (req, res) => {
         details,
         message: message || null,
       },
+    });
+
+    await sendVolunteerApplicationEmail({
+      fullName,
+      email: email.toLowerCase(),
+      phone,
+      areaOfInterest,
+      availability,
+      details,
+      message,
     });
 
     return res.status(201).json({
@@ -77,5 +99,27 @@ export const getVolunteerApplications = async (req, res) => {
   } catch (error) {
     console.error("GET VOLUNTEER APPLICATIONS ERROR:", error);
     return res.status(500).json({ status: "error", message: "Failed to fetch volunteer applications" });
+  }
+};
+
+export const markVolunteerApplicationAsRead = async (req, res) => {
+  try {
+    const application = await prisma.volunteerApplication.update({
+      where: { id: req.params.id },
+      data: { isRead: true },
+    });
+
+    return res.status(200).json({
+      status: "success",
+      message: "Volunteer application marked as read",
+      data: application,
+    });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ status: "error", message: "Volunteer application not found" });
+    }
+
+    console.error("MARK VOLUNTEER APPLICATION AS READ ERROR:", error);
+    return res.status(500).json({ status: "error", message: "Failed to mark volunteer application as read" });
   }
 };

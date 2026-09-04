@@ -3,6 +3,7 @@ import {
   createVolunteerApplication,
   getVolunteerApplications,
   getVolunteerOptions,
+  markVolunteerApplicationAsRead,
 } from "../controller/volunteerController.js";
 import { authMiddleware, requireAdmin } from "../middleWare/authMiddleWare.js";
 import { validate } from "../middleWare/validateRequest.js";
@@ -13,5 +14,6 @@ const router = express.Router();
 router.get("/options", getVolunteerOptions);
 router.post("/", validate(createVolunteerApplicationSchema), createVolunteerApplication);
 router.get("/admin", authMiddleware, requireAdmin, getVolunteerApplications);
+router.patch("/admin/:id/read", authMiddleware, requireAdmin, markVolunteerApplicationAsRead);
 
 export default router;

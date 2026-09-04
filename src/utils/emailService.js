@@ -106,6 +106,41 @@ export const sendContactEmail = async ({
   await sgMail.send(mail);
 };
 
+export const sendVolunteerApplicationEmail = async ({
+  fullName,
+  email,
+  phone,
+  areaOfInterest,
+  availability,
+  details,
+  message,
+}) => {
+  const detailRows = Object.entries(details || {})
+    .map(([key, value]) => `<p><strong>${key}:</strong> ${value}</p>`)
+    .join("");
+
+  await sgMail.send({
+    to: process.env.CONTACT_RECEIVER_EMAIL,
+    from: process.env.SENDGRID_FROM_EMAIL,
+    replyTo: email,
+    subject: `New Volunteer Application: ${areaOfInterest}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <h2>New Volunteer Application</h2>
+        <p><strong>Name:</strong> ${fullName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone || "Not provided"}</p>
+        <p><strong>Area of interest:</strong> ${areaOfInterest}</p>
+        <p><strong>Availability:</strong> ${availability}</p>
+        <h3>Additional details</h3>
+        ${detailRows || "<p>None provided</p>"}
+        <h3>Message</h3>
+        <p>${message || "None provided"}</p>
+      </div>
+    `,
+  });
+};
+
 export const sendQuoteInvitationEmail = async ({
   email,
   invitationLink,

@@ -9,6 +9,8 @@ const areasOfInterest = [
   "ADMIN_SUPPORT",
 ];
 
+const availabilityOptions = ["WEEKDAYS", "WEEKENDS", "BOTH", "FLEXIBLE"];
+
 const detailsSchema = z.record(z.string(), z.string().trim().max(1000));
 
 export const createVolunteerApplicationSchema = z
@@ -17,7 +19,7 @@ export const createVolunteerApplicationSchema = z
     email: z.string().trim().email().max(254),
     phone: z.string().trim().max(20).optional(),
     areaOfInterest: z.enum(areasOfInterest),
-    availability: z.string().trim().min(2).max(100),
+    availability: z.enum(availabilityOptions),
     details: detailsSchema.default({}),
     message: z.string().trim().max(2000).optional(),
   })
