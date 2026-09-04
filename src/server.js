@@ -13,6 +13,7 @@ import testimonialRoutes from "./routes/testimonialRoute.js";
 import newsRoutes from "./routes/newsRoute.js";
 import quoteRoute from "./routes/quoteRoute.js";
 import quoteInvitationRoute from "./routes/quoteInvitationRoute.js";
+import volunteerRoute from "./routes/volunteerRoute.js";
 
 import { connectDB, disconnectDB } from "./config/db.js";
 
@@ -40,6 +41,7 @@ app.use("/admin", adminRoute);
 app.use("/news", newsRoutes);
 app.use("/quotes/invitations", quoteInvitationRoute);
 app.use("/quotes", quoteRoute);
+app.use("/volunteers", volunteerRoute);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {

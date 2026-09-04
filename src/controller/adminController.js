@@ -11,6 +11,7 @@ export const getAdminStats = async (req, res) => {
       publishedEvents,
       totalContacts,
       unreadContacts,
+      totalVolunteers,
       totalNotifications,
       unreadNotifications,
     ] = await Promise.all([
@@ -21,6 +22,7 @@ export const getAdminStats = async (req, res) => {
       prisma.event.count({ where: { status: "PUBLISHED" } }),
       prisma.contactMessage.count(),
       prisma.contactMessage.count({ where: { isRead: false } }),
+      prisma.volunteerApplication.count(),
       prisma.notification.count(),
       prisma.notification.count({ where: { isRead: false } }),
     ]);
@@ -32,6 +34,7 @@ export const getAdminStats = async (req, res) => {
         teams: { total: totalTeams, published: publishedTeams, unpublished: totalTeams - publishedTeams },
         events: { total: totalEvents, published: publishedEvents, unpublished: totalEvents - publishedEvents },
         contacts: { total: totalContacts, unread: unreadContacts },
+        volunteers: { total: totalVolunteers },
         notifications: { total: totalNotifications, unread: unreadNotifications },
       },
     });

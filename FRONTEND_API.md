@@ -636,6 +636,62 @@ Notification `type` values: `EVENT_CREATED`, `EVENT_UPDATED`, `EVENT_DELETED`, `
 
 ---
 
+## Volunteers — `/volunteers`
+
+### Get Volunteer Options
+`GET /volunteers/options` — no auth required
+
+Use the returned `options` to render the area-of-interest dropdown. Each option includes its conditional `fields`; render those fields when that option is selected and send their values under `details`.
+
+```json
+{
+  "status": "success",
+  "options": [
+    {
+      "value": "MENTORING",
+      "label": "Mentoring and coaching",
+      "fields": [
+        { "name": "experience", "label": "Relevant experience", "type": "textarea", "required": true },
+        { "name": "ageGroup", "label": "Preferred age group", "type": "text", "required": true }
+      ]
+    }
+  ]
+}
+```
+
+### Submit Volunteer Application
+`POST /volunteers` — no auth required — `application/json`
+
+```json
+{
+  "fullName": "Jane Doe",
+  "email": "jane@example.com",
+  "phone": "+44 7700 900000",
+  "areaOfInterest": "MENTORING",
+  "availability": "Weekday evenings",
+  "details": {
+    "experience": "I have coached young leaders for three years.",
+    "ageGroup": "16-21"
+  },
+  "message": "I would love to help with the next programme."
+}
+```
+
+`areaOfInterest` must match an option returned by `/volunteers/options`; its required dynamic fields are validated by the API.
+
+```json
+{
+  "status": "success",
+  "message": "Thank you for volunteering. We will be in touch soon.",
+  "data": { "id": "uuid", "status": "NEW" }
+}
+```
+
+### List Volunteer Applications (admin)
+`GET /volunteers/admin` — requires `ADMIN` or `SUPERADMIN` authentication
+
+---
+
 ## Error Handling
 
 ```js

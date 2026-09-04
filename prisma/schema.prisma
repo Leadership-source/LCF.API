@@ -75,6 +75,23 @@ model ContactMessage {
   createdAt DateTime @default(now())
 }
 
+model VolunteerApplication {
+  id              String   @id @default(uuid())
+  fullName        String
+  email           String
+  phone           String?
+  areaOfInterest  String
+  availability    String
+  details         Json
+  message         String?
+  status          String   @default("NEW")
+  isRead          Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model EventRegistration {
   id           String   @id @default(uuid())
   eventId      String
