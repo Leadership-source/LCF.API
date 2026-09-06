@@ -7,6 +7,7 @@ import {
   forgotPassword,
   resetPassword,
   register,
+  verifyAdminLogin,
 } from "../controller/authController.js";
 import { authMiddleware } from "../middleWare/authMiddleWare.js";
 
@@ -15,11 +16,13 @@ import {
   changePasswordSchema,
   loginSchema,
   registerSchema,
+  verifyAdminLoginSchema,
 } from "../validators/authValidators.js";
 
 const router = express.Router();
 
 router.post("/login", validate(loginSchema), login);
+router.post("/login/verify", validate(verifyAdminLoginSchema), verifyAdminLogin);
 
 router.post("/register", validate(registerSchema), register);
 

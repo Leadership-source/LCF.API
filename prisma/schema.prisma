@@ -15,6 +15,9 @@ model User {
   createdAT                DateTime       @default(now())
   resetPasswordToken       String?
   resetPasswordTokenExpiry DateTime?
+  adminLoginCodeHash       String?
+  adminLoginCodeExpiry     DateTime?
+  adminLoginChallenge      String?  @unique
   role                     Role           @default(USER)
   events                   Event[]
   notifications            Notification[]

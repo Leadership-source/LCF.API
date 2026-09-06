@@ -84,6 +84,26 @@ Possible `role` values: `"USER"` · `"ADMIN"` · `"SUPERADMIN"`
 
 Store the `role` on the client to conditionally render admin UI.
 
+For `ADMIN` and `SUPERADMIN` accounts, the first request returns `202` instead of a token:
+
+```json
+{
+  "status": "verification_required",
+  "message": "A six-digit security code has been sent to your email.",
+  "challenge": "temporary-challenge-token"
+}
+```
+
+Prompt for the code sent to the admin's email, then verify it:
+
+```json
+POST /auth/login/verify
+
+{ "challenge": "temporary-challenge-token", "code": "123456" }
+```
+
+The verification response has the normal login shape and includes the JWT token. The code expires after 10 minutes.
+
 ---
 
 ### Logout
@@ -157,7 +177,7 @@ All routes below require the authenticated user to have `role: "SUPERADMIN"`. An
 {
   "name": "Jane Doe",           // min 2, max 100 chars
   "email": "jane@example.com",
-  "password": "SecurePass@1",   // min 8, max 100 chars
+  "password": "SecurePass@1",   // optional; generated and emailed when omitted
   "role": "USER"                // optional — "USER" | "ADMIN" | "SUPERADMIN", defaults to "USER"
 }
 ```
@@ -172,9 +192,12 @@ All routes below require the authenticated user to have `role: "SUPERADMIN"`. An
     "email": "jane@example.com",
     "role": "USER",
     "createdAT": "2026-08-13T00:00:00.000Z"
-  }
+  },
+  "emailSent": true
 }
 ```
+
+When `password` is omitted, the API generates a temporary password and emails it to the new user with the login link and instructions to change it. Users can change it with `PUT /auth/change-password` after signing in, or use the forgot/reset password flow.
 
 ```json
 // 400 — email already exists

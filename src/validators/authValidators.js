@@ -49,7 +49,13 @@ export const createUserSchema = z.object({
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
-    .max(100, "Password cannot exceed 100 characters"),
+    .max(100, "Password cannot exceed 100 characters")
+    .optional(),
 
   role: z.enum(["USER", "ADMIN", "SUPERADMIN"]).optional(),
+});
+
+export const verifyAdminLoginSchema = z.object({
+  challenge: z.string().min(20, "Invalid login challenge"),
+  code: z.string().regex(/^\d{6}$/, "Security code must be 6 digits"),
 });

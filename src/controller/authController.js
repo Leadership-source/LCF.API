@@ -3,7 +3,10 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
 import { generateToken } from "../utils/generateToken.js";
-import { sendPasswordResetEmail } from "../utils/emailService.js";
+import {
+  sendAdminLoginCodeEmail,
+  sendPasswordResetEmail,
+} from "../utils/emailService.js";
 
 const register = async (req, res) => {
   try {
@@ -58,6 +61,33 @@ const login = async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
+    if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
+      const code = crypto.randomInt(100000, 1000000).toString();
+      const challenge = crypto.randomBytes(32).toString("hex");
+      const codeHash = await bcrypt.hash(code, 10);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          adminLoginCodeHash: codeHash,
+          adminLoginCodeExpiry: new Date(Date.now() + 10 * 60 * 1000),
+          adminLoginChallenge: challenge,
+        },
+      });
+
+      await sendAdminLoginCodeEmail({
+        email: user.email,
+        name: user.name,
+        code,
+      });
+
+      return res.status(202).json({
+        status: "verification_required",
+        message: "A six-digit security code has been sent to your email.",
+        challenge,
+      });
+    }
+
     const token = generateToken(user.id, res);
 
     return res.status(200).json({
@@ -73,6 +103,55 @@ const login = async (req, res) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Login failed. Please try again." });
+  }
+};
+
+export const verifyAdminLogin = async (req, res) => {
+  try {
+    const { challenge, code } = req.body;
+    const user = await prisma.user.findUnique({
+      where: { adminLoginChallenge: challenge },
+    });
+
+    if (
+      !user ||
+      !user.adminLoginCodeHash ||
+      !user.adminLoginCodeExpiry ||
+      user.adminLoginCodeExpiry <= new Date() ||
+      !(await bcrypt.compare(code, user.adminLoginCodeHash))
+    ) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid or expired security code.",
+      });
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        adminLoginCodeHash: null,
+        adminLoginCodeExpiry: null,
+        adminLoginChallenge: null,
+      },
+    });
+
+    const token = generateToken(user.id, res);
+    return res.status(200).json({
+      message: "Logged in successfully",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error("VERIFY ADMIN LOGIN ERROR:", error);
+    return res.status(500).json({
+      status: "error",
+      message: "Login verification failed. Please try again.",
+    });
   }
 };
 

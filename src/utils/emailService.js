@@ -66,6 +66,40 @@ export const sendPasswordResetEmail = async ({ email, name, resetLink }) => {
   await sgMail.send(message);
 };
 
+export const sendAdminLoginCodeEmail = async ({ email, name, code }) => {
+  await sendEmail({
+    to: email,
+    subject: "Your LCF admin security code",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <h2>Admin login verification</h2>
+        <p>Hello ${name || "Admin"},</p>
+        <p>Use this six-digit security code to complete your admin login:</p>
+        <p style="font-size: 32px; font-weight: bold; letter-spacing: 8px;">${code}</p>
+        <p>This code expires in 10 minutes. If you did not try to sign in, you can ignore this email.</p>
+      </div>
+    `,
+  });
+};
+
+export const sendUserWelcomeEmail = async ({ email, name, temporaryPassword, loginLink }) => {
+  await sendEmail({
+    to: email,
+    subject: "Your LCF account details",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <h2>Welcome to the Leadership Conference Forum</h2>
+        <p>Hello ${name || "there"},</p>
+        <p>An account has been created for you. Use these temporary login details:</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Temporary password:</strong> ${temporaryPassword}</p>
+        <p><a href="${loginLink}">Sign in to your account</a></p>
+        <p>After signing in, change your password from your account settings using the change-password form.</p>
+      </div>
+    `,
+  });
+};
+
 export const sendContactEmail = async ({
   fullName,
   email,

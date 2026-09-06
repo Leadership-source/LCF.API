@@ -1,5 +1,7 @@
 import { prisma } from "../config/db.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import { sendUserWelcomeEmail } from "../utils/emailService.js";
 
 export const getAdminStats = async (req, res) => {
   try {
@@ -110,6 +112,11 @@ export const getAdminDashboard = (req, res) => {
         <input type="password" id="password" placeholder="••••••••" />
       </div>
       <button id="login-btn" onclick="doLogin()">Sign In</button>
+      <div id="code-group" class="form-group" style="display:none; margin-top:1rem">
+        <label for="security-code">Six-digit security code</label>
+        <input type="text" id="security-code" inputmode="numeric" maxlength="6" placeholder="123456" />
+        <button id="verify-btn" onclick="verifyLoginCode()" style="width:100%; background:#27ae60; color:#fff; border:none; padding:0.75rem; border-radius:8px; font-size:1rem; cursor:pointer; font-weight:600; margin-top:0.75rem">Verify code</button>
+      </div>
       <p id="login-error"></p>
     </section>
 
@@ -150,6 +157,7 @@ export const getAdminDashboard = (req, res) => {
 
   <script>
     let token = localStorage.getItem('lcf_admin_token');
+    let loginChallenge = null;
 
     async function doLogin() {
       const email = document.getElementById('email').value.trim();
@@ -165,7 +173,14 @@ export const getAdminDashboard = (req, res) => {
           body: JSON.stringify({ email, password }),
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Login failed');
+        if (!res.ok) throw new Error(data.error || data.message || 'Login failed');
+        if (data.status === 'verification_required') {
+          loginChallenge = data.challenge;
+          document.getElementById('code-group').style.display = 'block';
+          document.getElementById('login-btn').style.display = 'none';
+          document.getElementById('security-code').focus();
+          return;
+        }
         token = data.token;
         localStorage.setItem('lcf_admin_token', token);
         document.getElementById('user-info').textContent = data.user?.name || data.user?.email || '';
@@ -174,6 +189,29 @@ export const getAdminDashboard = (req, res) => {
         err.textContent = e.message;
         err.style.display = 'block';
         document.getElementById('login-btn').textContent = 'Sign In';
+      }
+    }
+
+    async function verifyLoginCode() {
+      const code = document.getElementById('security-code').value.trim();
+      const err = document.getElementById('login-error');
+      err.style.display = 'none';
+      try {
+        const res = await fetch('/auth/login/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ challenge: loginChallenge, code }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Invalid security code');
+        token = data.token;
+        localStorage.setItem('lcf_admin_token', token);
+        document.getElementById('user-info').textContent = data.user?.name || data.user?.email || '';
+        showDashboard();
+      } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
       }
     }
 
@@ -234,6 +272,9 @@ export const getAdminDashboard = (req, res) => {
     document.getElementById('password').addEventListener('keydown', e => {
       if (e.key === 'Enter') doLogin();
     });
+    document.getElementById('security-code').addEventListener('keydown', e => {
+      if (e.key === 'Enter') verifyLoginCode();
+    });
   </script>
 </body>
 </html>`;
@@ -250,14 +291,32 @@ export const createUser = async (req, res) => {
       return res.status(400).json({ error: "A user with that email already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const temporaryPassword = password || crypto.randomBytes(9).toString("base64url");
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword, role },
       select: { id: true, name: true, email: true, role: true, createdAT: true },
     });
 
-    return res.status(201).json({ message: "User created successfully", user });
+    let emailSent = true;
+    try {
+      await sendUserWelcomeEmail({
+        email: user.email,
+        name: user.name,
+        temporaryPassword,
+        loginLink: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+      });
+    } catch (emailError) {
+      emailSent = false;
+      console.error("SEND USER WELCOME EMAIL ERROR:", emailError);
+    }
+
+    return res.status(201).json({
+      message: "User created successfully",
+      user,
+      emailSent,
+    });
   } catch (error) {
     console.error("CREATE USER ERROR:", error);
     return res.status(500).json({ error: "Failed to create user" });
