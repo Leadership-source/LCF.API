@@ -99,7 +99,7 @@ export const getTeams = async (req, res) => {
 
     return res.status(500).json({
       status: "error",
-      message: error.message,
+      message: "Failed to fetch team members.",
     });
   }
 };

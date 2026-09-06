@@ -19,6 +19,7 @@ model User {
   events                   Event[]
   notifications            Notification[]
   teams                    Team[]
+  externalRoles           ExternalRole[]
   testimonials             Testimonial[]
 }
 
@@ -32,6 +33,23 @@ model Team {
   displayOrder Int        @default(0)
   status       TeamStatus @default(UNPUBLISHED)
   creator      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
+
+model ExternalRole {
+  id           String     @id @default(uuid())
+  name         String
+  roleType     String     // ADVISOR, PATRON, BRAND_AMBASSADOR, HONORARY_SUPPORTER, MENTEE
+  bio          String?
+  image        String
+  displayOrder Int        @default(0)
+  status       TeamStatus @default(UNPUBLISHED)
+  createdBy    String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  creator      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([roleType])
 }
 
 model Event {

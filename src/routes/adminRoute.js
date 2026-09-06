@@ -7,7 +7,11 @@ import {
   deleteUser,
   updateUserRole,
 } from "../controller/adminController.js";
-import { authMiddleware, requireSuperAdmin } from "../middleWare/authMiddleWare.js";
+import {
+  authMiddleware,
+  requireAdmin,
+  requireSuperAdmin,
+} from "../middleWare/authMiddleWare.js";
 import { validate } from "../middleWare/validateRequest.js";
 import { createUserSchema } from "../validators/authValidators.js";
 
@@ -17,7 +21,7 @@ const router = express.Router();
 router.get("/", getAdminDashboard);
 
 // JSON stats endpoint used by the dashboard — requires auth
-router.get("/stats", authMiddleware, getAdminStats);
+router.get("/stats", authMiddleware, requireAdmin, getAdminStats);
 
 // User management — superadmin only
 router.post("/users", authMiddleware, requireSuperAdmin, validate(createUserSchema), createUser);

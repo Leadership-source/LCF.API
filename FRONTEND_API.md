@@ -692,6 +692,155 @@ Use the returned `options` to render the area-of-interest dropdown. Each option 
 
 ---
 
+## External Roles — `/external-roles`
+
+External roles represent organizational positions such as Advisors, Patrons, Brand Ambassadors, etc. Similar to teams, they can be published/unpublished and reordered.
+
+### Get Published External Roles (public)
+`GET /external-roles/public` — no auth required
+
+```json
+// 200 response
+{
+  "status": "success",
+  "results": 3,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Sarah Johnson",
+      "roleType": "ADVISOR",
+      "bio": "Sarah brings 20 years of experience in leadership development...",
+      "image": "https://res.cloudinary.com/...",
+      "displayOrder": 1
+    }
+  ]
+}
+```
+
+Roles are ordered by `displayOrder` ascending. Only published roles are returned.
+
+---
+
+### Get All External Roles (admin)
+`GET /external-roles` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Returns all external roles including unpublished ones.
+
+```json
+// 200 response
+{
+  "status": "success",
+  "results": 5,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Sarah Johnson",
+      "roleType": "ADVISOR",
+      "bio": "...",
+      "image": "https://res.cloudinary.com/...",
+      "displayOrder": 1,
+      "status": "PUBLISHED",
+      "createdBy": "uuid",
+      "creator": { "id": "uuid", "name": "Admin User", "email": "admin@example.com" },
+      "createdAt": "2026-08-01T00:00:00.000Z",
+      "updatedAt": "2026-08-14T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+### Create External Role
+`POST /external-roles` 🔒 *requires auth (ADMIN or SUPERADMIN)* — `multipart/form-data`
+
+| Field | Type | Notes |
+|---|---|---|
+| `name` | string (min 2, max 100) | ✅ required |
+| `roleType` | string | ✅ required, one of: `ADVISOR`, `PATRON`, `BRAND_AMBASSADOR`, `HONORARY_SUPPORTER`, `MENTEE` |
+| `bio` | string (max 2000) | optional |
+| `image` | file (max 5MB) | ✅ required |
+| `displayOrder` | number (int ≥ 0) | optional, defaults to 0 |
+
+```js
+const form = new FormData();
+form.append("name", "Sarah Johnson");
+form.append("roleType", "ADVISOR");
+form.append("bio", "Sarah brings 20 years of experience...");
+form.append("image", fileInput.files[0]);
+form.append("displayOrder", "1");
+
+api.post("/external-roles", form);
+```
+
+```json
+// 201 response
+{ "status": "success", "data": { ...roleObject } }
+```
+
+---
+
+### Update External Role
+`PUT /external-roles/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)* — `multipart/form-data`
+
+All fields optional. Only supplied fields are updated.
+
+| Field | Type |
+|---|---|
+| `name` | string |
+| `roleType` | string (ADVISOR \| PATRON \| BRAND_AMBASSADOR \| HONORARY_SUPPORTER \| MENTEE) |
+| `bio` | string (max 2000, set to empty string to clear) |
+| `image` | file (new image, optional) |
+| `status` | `"PUBLISHED"` \| `"UNPUBLISHED"` |
+| `displayOrder` | number |
+
+---
+
+### Update External Role Status
+`PATCH /external-roles/:id/status` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// body
+{ "status": "PUBLISHED" }
+// or
+{ "status": "UNPUBLISHED" }
+```
+
+---
+
+### Reorder External Roles
+`PATCH /external-roles/reorder` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Batch update display order for multiple roles. Useful for drag-and-drop UIs.
+
+```json
+// body
+{
+  "orders": [
+    { "id": "uuid-1", "displayOrder": 1 },
+    { "id": "uuid-2", "displayOrder": 2 },
+    { "id": "uuid-3", "displayOrder": 3 }
+  ]
+}
+```
+
+```json
+// 200 response
+{ "status": "success", "message": "External roles reordered successfully" }
+```
+
+---
+
+### Delete External Role
+`DELETE /external-roles/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{ "status": "success", "message": "External role deleted successfully" }
+```
+
+---
+
 ## Error Handling
 
 ```js

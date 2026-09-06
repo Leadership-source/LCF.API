@@ -15,6 +15,7 @@ import quoteRoute from "./routes/quoteRoute.js";
 import quoteInvitationRoute from "./routes/quoteInvitationRoute.js";
 import volunteerRoute from "./routes/volunteerRoute.js";
 import partnerRoutes from "./routes/partnerRoute.js";
+import externalRoleRoute from "./routes/externalRoleRoute.js";
 
 import { connectDB, disconnectDB } from "./config/db.js";
 
@@ -44,6 +45,7 @@ app.use("/quotes/invitations", quoteInvitationRoute);
 app.use("/quotes", quoteRoute);
 app.use("/volunteers", volunteerRoute);
 app.use("/partners", partnerRoutes);
+app.use("/external-roles", externalRoleRoute);
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
