@@ -168,6 +168,24 @@ model QuoteInvitation {
   @@index([expiresAt])
 }
 
+model Partner {
+  id        String        @id @default(uuid())
+  name      String
+  logo      String?
+  status    PartnerStatus @default(UNPUBLISHED)
+  createdBy String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum PartnerStatus {
+  PUBLISHED
+  UNPUBLISHED
+}
+
 enum TestimonialStatus {
   PENDING
   APPROVED
