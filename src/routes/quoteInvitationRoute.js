@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 
 import {
   createQuoteInvitation,
@@ -20,6 +21,12 @@ import {
 } from "../validators/quoteValidator.js";
 
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
 // SUPERADMIN generates invitation
 router.post(
@@ -47,6 +54,7 @@ router.get("/:token", getQuoteInvitation);
 // Public submits quote
 router.post(
   "/:token/submit",
+  upload.single("image"),
   validate(quoteInvitationSubmissionSchema),
   submitQuoteInvitation,
 );

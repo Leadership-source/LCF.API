@@ -587,6 +587,298 @@ Possible `status` values: `"PENDING"` · `"APPROVED"` · `"REJECTED"`
 
 ---
 
+## Leader Quotes — `/quotes`
+
+Leader quotes can be submitted via invitation links or created directly by admins. Each quote can optionally include an image of the person being quoted.
+
+### Get Published Quotes (public)
+`GET /quotes/published` — no auth required
+
+```json
+// 200 response
+{
+  "status": "success",
+  "results": 3,
+  "data": [
+    {
+      "id": "uuid",
+      "name": "Jane Doe",
+      "role": "Community Leader",
+      "quote": "This programme has been transformative...",
+      "image": "https://cloudinary.com/...", // URL or null
+      "status": "PUBLISHED",
+      "source": "ADMIN",
+      "publishedAt": "2026-09-01T00:00:00.000Z",
+      "createdAt": "2026-09-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Get All Quotes (admin)
+`GET /quotes` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Returns all quotes regardless of status (`DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`).
+
+```json
+// 200 response
+{
+  "status": "success",
+  "results": 5,
+  "data": [ { ...quoteObject } ]
+}
+```
+
+### Get Single Quote (admin)
+`GET /quotes/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{
+  "status": "success",
+  "data": { ...quoteObject }
+}
+```
+
+### Create Quote (admin)
+`POST /quotes` 🔒 *requires auth (ADMIN or SUPERADMIN)* — `multipart/form-data`
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | text | ✓ | Person's name |
+| `role` | text | ✓ | Person's role/title |
+| `quote` | textarea | ✓ | The quote text |
+| `status` | select | ✗ | `DRAFT` (default) or `PUBLISHED` |
+| `image` | file | ✗ | JPEG/PNG, max 5MB |
+
+```js
+const form = new FormData();
+form.append("name", "Jane Doe");
+form.append("role", "CEO");
+form.append("quote", "Leadership is about serving others...");
+form.append("status", "DRAFT");
+form.append("image", fileInput.files[0]); // optional
+
+api.post("/quotes", form);
+```
+
+```json
+// 201 response
+{
+  "status": "success",
+  "message": "Quote created successfully.",
+  "data": {
+    "id": "uuid",
+    "name": "Jane Doe",
+    "role": "CEO",
+    "quote": "Leadership is about serving others...",
+    "image": "https://cloudinary.com/...",
+    "status": "DRAFT",
+    "source": "ADMIN",
+    "createdBy": "uuid",
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  }
+}
+```
+
+### Update Quote (admin)
+`PUT /quotes/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)* — `multipart/form-data`, all fields optional
+
+Update name, role, quote text, or image. Only supplied fields are updated.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | text | ✗ | Person's name |
+| `role` | text | ✗ | Person's role/title |
+| `quote` | textarea | ✗ | The quote text |
+| `image` | file | ✗ | JPEG/PNG, max 5MB; replaces existing |
+
+```js
+const form = new FormData();
+form.append("name", "Jane Doe");
+form.append("image", fileInput.files[0]); // to replace image
+
+api.put("/quotes/uuid", form);
+```
+
+```json
+// 200 response
+{
+  "status": "success",
+  "message": "Quote updated successfully.",
+  "data": { ...updatedQuoteObject }
+}
+```
+
+### Update Quote Status (admin)
+`PATCH /quotes/:id/status` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Allowed statuses: `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`
+
+Only invitation-sourced quotes can be `REJECTED`. Rejected quotes cannot transition directly to `PUBLISHED` without first being unrejected (status change to `PENDING` or `DRAFT`).
+
+```json
+// body
+{ "status": "PUBLISHED" }
+```
+
+```json
+// 200 response
+{
+  "status": "success",
+  "message": "Quote published successfully.",
+  "data": { ...quoteObject }
+}
+```
+
+When a quote is rejected, the originating leader receives a rejection email.
+
+### Delete Quote (admin)
+`DELETE /quotes/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{
+  "status": "success",
+  "message": "Quote deleted successfully."
+}
+```
+
+---
+
+## Quote Invitations — `/quotes/invitations`
+
+Invitation-based quotes allow designated leaders to submit quotes via a unique, time-limited link.
+
+### Create Quote Invitation (admin)
+`POST /quotes/invitations` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// body
+{
+  "email": "leader@example.com",
+  "name": "John Smith",
+  "role": "Founder"
+}
+```
+
+```json
+// 201 response
+{
+  "status": "success",
+  "message": "Invitation sent successfully.",
+  "data": {
+    "id": "uuid",
+    "email": "leader@example.com",
+    "name": "John Smith",
+    "role": "Founder",
+    "token": "unique-token-string",
+    "status": "PENDING",
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  }
+}
+```
+
+An email with the submission link is automatically sent to the leader.
+
+### Get Quote Invitations (admin)
+`GET /quotes/invitations` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{
+  "status": "success",
+  "data": [ { ...invitationObject } ]
+}
+```
+
+### Validate Invitation Link (public)
+`GET /quotes/invitations/:token` — no auth required
+
+Checks if the invitation token is valid (not expired, not already submitted).
+
+```json
+// 200 response (valid)
+{
+  "status": "success",
+  "data": {
+    "name": "John Smith",
+    "role": "Founder",
+    "email": "leader@example.com"
+  }
+}
+```
+
+```json
+// 404 response (invalid/expired)
+{
+  "status": "error",
+  "message": "Invalid or expired invitation link."
+}
+```
+
+### Submit Quote via Invitation (public)
+`POST /quotes/invitations/:token/submit` — no auth required — `multipart/form-data`
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `quote` | textarea | ✓ | The quote text |
+| `image` | file | ✗ | JPEG/PNG, max 5MB |
+
+```js
+const form = new FormData();
+form.append("quote", "Working with LCF changed my perspective...");
+form.append("image", fileInput.files[0]); // optional
+
+api.post("/quotes/invitations/token-value/submit", form);
+```
+
+```json
+// 201 response
+{
+  "status": "success",
+  "message": "Quote submitted successfully. Thank you!",
+  "data": {
+    "id": "uuid",
+    "name": "John Smith",
+    "role": "Founder",
+    "quote": "Working with LCF changed my perspective...",
+    "image": "https://cloudinary.com/...",
+    "status": "PENDING",
+    "source": "INVITATION",
+    "createdAt": "2026-09-01T00:00:00.000Z"
+  }
+}
+```
+
+The quote starts in `PENDING` status and admins are notified to review it.
+
+### Resend Invitation (admin)
+`POST /quotes/invitations/:id/resend` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+Re-sends the invitation email to the leader.
+
+```json
+// 200 response
+{
+  "status": "success",
+  "message": "Invitation resent successfully."
+}
+```
+
+### Delete Invitation (admin)
+`DELETE /quotes/invitations/:id` 🔒 *requires auth (ADMIN or SUPERADMIN)*
+
+```json
+// 200 response
+{
+  "status": "success",
+  "message": "Invitation deleted successfully."
+}
+```
+
+---
+
 ## Notifications — `/notifications`
 
 ### Get My Notifications

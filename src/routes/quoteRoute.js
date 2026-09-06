@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 
 import {
   createQuote,
@@ -22,6 +23,12 @@ import {
 } from "../validators/quoteValidator.js";
 
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+});
 
 // Public
 router.get("/published", getPublishedQuotes);
@@ -35,6 +42,7 @@ router.post(
   "/",
   authMiddleware,
   requireAdmin,
+  upload.single("image"),
   validate(createQuoteSchema),
   createQuote,
 );
@@ -43,6 +51,7 @@ router.put(
   "/:id",
   authMiddleware,
   requireAdmin,
+  upload.single("image"),
   validate(updateQuoteSchema),
   updateQuote,
 );

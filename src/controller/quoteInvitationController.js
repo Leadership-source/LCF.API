@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import cloudinary from "../config/cloudinary.js";
 import { prisma } from "../config/db.js";
 import { sendQuoteInvitationEmail } from "../utils/emailService.js";
 
@@ -168,6 +169,25 @@ export const submitQuoteInvitation = async (req, res) => {
   try {
     const { token } = req.params;
     const { name, role, quote } = req.body;
+    let imageUrl = null;
+
+    // Upload image if provided
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "leadership/quotes",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      imageUrl = result.secure_url;
+    }
 
     // Find invitation
     const invitation = await prisma.quoteInvitation.findUnique({
@@ -233,6 +253,7 @@ export const submitQuoteInvitation = async (req, res) => {
           email: invitation.email,
 
           quote: quote.trim(),
+          image: imageUrl,
 
           status: "PENDING",
           source: "INVITATION",

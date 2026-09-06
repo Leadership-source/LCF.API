@@ -157,6 +157,7 @@ model LeaderQuote {
   role        String
   email       String?
   quote       String      @db.Text
+  image       String?
   status      QuoteStatus @default(DRAFT)
   source      QuoteSource @default(ADMIN)
   createdBy   String?

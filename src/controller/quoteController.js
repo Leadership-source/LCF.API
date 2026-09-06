@@ -1,5 +1,5 @@
 import { prisma } from "../config/db.js";
-
+import cloudinary from "../config/cloudinary.js";
 import { sendQuoteRejectionEmail } from "../utils/emailService.js";
 
 // ======================================================
@@ -10,6 +10,25 @@ import { sendQuoteRejectionEmail } from "../utils/emailService.js";
 export const createQuote = async (req, res) => {
   try {
     const { name, role, quote, status } = req.body;
+    let imageUrl = null;
+
+    // Upload image if provided
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "leadership/quotes",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      imageUrl = result.secure_url;
+    }
 
     const leaderQuote = await prisma.leaderQuote.create({
       data: {
@@ -17,6 +36,7 @@ export const createQuote = async (req, res) => {
         role: role.trim(),
         email: null,
         quote: quote.trim(),
+        image: imageUrl,
         status: status || "DRAFT",
         source: "ADMIN",
         createdBy: req.user.id,
@@ -30,7 +50,8 @@ export const createQuote = async (req, res) => {
       message: "Quote created successfully.",
       data: leaderQuote,
     });
-  } catch {
+  } catch (error) {
+    console.error("CREATE QUOTE ERROR:", error);
     return res.status(500).json({
       status: "error",
       message: "Failed to create quote.",
@@ -96,7 +117,7 @@ export const getQuote = async (req, res) => {
 
 // ======================================================
 // UPDATE QUOTE
-// Used for editing name, role and quote content
+// Used for editing name, role, quote content, and image
 // ======================================================
 
 export const updateQuote = async (req, res) => {
@@ -115,12 +136,33 @@ export const updateQuote = async (req, res) => {
       });
     }
 
+    let imageUrl = existingQuote.image;
+
+    // Upload new image if provided
+    if (req.file) {
+      const result = await new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "leadership/quotes",
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        uploadStream.end(req.file.buffer);
+      });
+      imageUrl = result.secure_url;
+    }
+
     const updatedQuote = await prisma.leaderQuote.update({
       where: { id },
       data: {
         ...(name !== undefined && { name: name.trim() }),
         ...(role !== undefined && { role: role.trim() }),
         ...(quote !== undefined && { quote: quote.trim() }),
+        ...(req.file && { image: imageUrl }),
       },
     });
 
@@ -129,7 +171,8 @@ export const updateQuote = async (req, res) => {
       message: "Quote updated successfully.",
       data: updatedQuote,
     });
-  } catch {
+  } catch (error) {
+    console.error("UPDATE QUOTE ERROR:", error);
     return res.status(500).json({
       status: "error",
       message: "Failed to update quote.",
