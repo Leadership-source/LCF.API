@@ -305,7 +305,7 @@ export const createUser = async (req, res) => {
         email: user.email,
         name: user.name,
         temporaryPassword,
-        loginLink: `${process.env.FRONTEND_URL || "http://localhost:5173"}/login`,
+        loginLink: `${process.env.FRONTEND_URL || "http://localhost:5173"}/#/admin/login`,
       });
     } catch (emailError) {
       emailSent = false;
