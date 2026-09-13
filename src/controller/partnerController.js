@@ -2,17 +2,33 @@ import { prisma } from "../config/db.js";
 import cloudinary from "../config/cloudinary.js";
 import { createNotification } from "../service/notificationService.js";
 
+const isValidUrl = (value) => {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 // ---------------------------------------------
 // Create Partner
 // ---------------------------------------------
 export const createPartner = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, websiteUrl } = req.body;
 
     if (!name?.trim()) {
       return res.status(400).json({
         status: "error",
         message: "Partner name is required.",
+      });
+    }
+
+    if (websiteUrl?.trim() && !isValidUrl(websiteUrl.trim())) {
+      return res.status(400).json({
+        status: "error",
+        message: "Website URL must be a valid http(s) URL.",
       });
     }
 
@@ -45,6 +61,7 @@ export const createPartner = async (req, res) => {
       data: {
         name: name.trim(),
         logo,
+        websiteUrl: websiteUrl?.trim() || null,
         status: "UNPUBLISHED",
         createdBy: req.user.id,
       },
@@ -164,7 +181,7 @@ export const getPartner = async (req, res) => {
 export const updatePartner = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, websiteUrl } = req.body;
 
     const existingPartner = await prisma.partner.findUnique({
       where: { id },
@@ -188,6 +205,19 @@ export const updatePartner = async (req, res) => {
       }
 
       data.name = name.trim();
+    }
+
+    if (websiteUrl !== undefined) {
+      const trimmedUrl = websiteUrl?.trim() || "";
+
+      if (trimmedUrl && !isValidUrl(trimmedUrl)) {
+        return res.status(400).json({
+          status: "error",
+          message: "Website URL must be a valid http(s) URL.",
+        });
+      }
+
+      data.websiteUrl = trimmedUrl || null;
     }
 
     // Replace logo only when a new logo is uploaded
