@@ -20,9 +20,17 @@ import externalRoleRoute from "./routes/externalRoleRoute.js";
 import { connectDB, disconnectDB } from "./config/db.js";
 
 const app = express();
+const allowedOrigins = [
+  process.env.CORS_ORIGIN || "http://localhost:5173",
+  "https://leadershipconferenceforum.org",
+  "https://www.leadershipconferenceforum.org",
+  "https://lcf-domg.onrender.com",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   }),
 );
